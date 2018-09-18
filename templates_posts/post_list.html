@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Post{% endblock %}
+
+{% block content %}
+
+<div class="col-md-8">
+  <h1 class="my-4">Posting <small>blognya</small> </h1>
+  {% for obj in object_list %}
+  <div class="card mb-4">
+    <img class="card-img-top" src="{{ obj.image.url }}" alt="Card image cap">
+    <div class="card-body">
+      <h3 class="card-title">{{ obj.title }}</h3>
+      <p class="card-text">{{ obj.content }}</p>
+      <a href="{{ obj.get_absolute_url }}" class="btn btn-primary">Read More -></a>
+    </div>
+    <div class="card-footer text-muted">{{ obj.publish }}
+
+    </div>
+  </div>
+
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+<ul class="pagination justify-content-center mb-4">
+  <li class="page-item">
+    {% if object_list.has_previous %}
+    <a class="page-link" href="?{{ page_request_var }}={{ object_list.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&larr;
+      Older</a>
+    {% endif %}
+  </li>
+  <li class="page-item disabled">
+    {% if object_list.has_next %}
+    <a class="page-link" href="?{{ page_request_var }}={{ object_list.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Newer
+      &rarr;</a>
+    {% endif %}
+  </li>
+</ul>
+<br />
+{% endblock content %}

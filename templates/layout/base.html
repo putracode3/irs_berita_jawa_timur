@@ -1,0 +1,50 @@
+{% comment %} file template global yang akan menjadi wadah bagi file template di view lainnya {% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    {% include "layout/head.html" %}
+
+    <style>
+        body .row {
+            font-size: 0.8rem;
+        }
+    </style>
+
+</head>
+
+<body class="bg-light">
+    <div class="container">
+        <div class="py-3 text-center">
+            <h2>IRS Berita Jawa Timur</h2>
+            <form class="card p-2">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="IRS Berita Jawa Timur">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">Cari</button>
+                    </div>
+                </div>
+            </form>
+            | <small><a href="/">Home</a></small> |
+            | <small><a href="/simpan/">Save Data to MySql</a></small> |
+            | <small><a href="/preproses/">Pre-processing</a></small> |
+            | <small><a href="/term/">Count Term</a></small> |
+            | <small><a href="/manual/">Manual Training</a></small> |
+        </div>
+        <div class="row">
+            {% block content %} {% endblock %}
+        </div>
+        <footer class="my-5 pt-3 text-muted text-center text-small">
+            <p class="mb-1">&copy; 2018 IRS Berita Jawa Timur (Denny Setia Wisnugraha | 14650024)</p>
+        </footer>
+    </div>
+
+
+    </div>
+    <!-- /#wrapper -->
+
+    {% include "layout/js.html" %} {% block inline_js %} {% endblock %}
+</body>
+
+</html>

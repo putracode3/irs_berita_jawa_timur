@@ -1,0 +1,72 @@
+{% extends "layout/base.html" %} {% block content %} {% for p in crawl%}
+<div class="col-md-12 mt-2">
+    <div class="card">
+        <div class="card-body">
+            <p class="card-text">
+                <span class="d-flex justify-content-center"> {{ p.id }} </span>
+                <div>
+                    <span class="text-primary">Headline:</span>
+                    <small>{{ p.headline }}</small>
+                </div>
+                <div>
+                    <span class="text-primary">Date:</span>
+                    <small>{{ p.date }}</small>
+                </div>
+                <div>
+                    <span class="text-primary">Main Headline:</span>
+                    <small>{{ p.main_headline }}</small>
+                </div>
+                <div>
+                    <span class="text-primary">Url:</span>
+                    <a href="{{ p.url }}" target="_blank"><small>{{ p.url }}</small></a>
+                </div>
+                <div>
+                    <span class="text-primary">Content:</span>
+                    <small>{{ p.content }}</small>
+                </div>
+            </p>
+        </div>
+    </div>
+</div>
+{% endfor %} 
+
+<div class="col-md-12 mt-2">
+    <nav aria-label="Page navigation example">
+        <ul class="pagination flex-wrap">
+            {% if crawl.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ crawl.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">Previous</span>
+                </a>
+            </li>
+            {% endif %} {% for hlm in crawl.paginator.page_range %} {% ifequal hlm crawl.number %}
+            <li class="page-item active">
+                <a class="page-link" href="?page={{ hlm }}">
+                    {{ hlm }}
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ hlm }}">
+                    {{ hlm }}
+                </a>
+            </li>
+            {% endifequal %} {% endfor %} {% if crawl.has_next %}
+            <li class="page-item mr-3">
+                <a class="page-link" href="?page={{ crawl.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <a class="page-link bg-secondary text-white" href="#">
+                    Page {{ crawl.number }} of {{ crawl.paginator.num_pages }}
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{% endblock %}
