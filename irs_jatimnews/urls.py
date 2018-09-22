@@ -38,4 +38,5 @@ urlpatterns = [
     url(r'^preproses/', aplikasi_views.preproses),
     url(r'^term/', aplikasi_views.hitung_term),
     url(r'^manual/', aplikasi_views.manual_class),
+    url(r'^tf_idf/', aplikasi_views.tf_idf),
 ]

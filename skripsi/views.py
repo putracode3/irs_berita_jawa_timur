@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 
 import json
 import ast
+import math
 from skripsi.models import CrawlNews, Kelas
 from django.http import HttpResponseRedirect
 
@@ -60,7 +61,7 @@ def preproses(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 0 and kounter <= 1:
+        if kounter > 1 and kounter <= 3:
             # create stemmer
             factory = StemmerFactory()
             stemmer = factory.create_stemmer()
@@ -88,7 +89,7 @@ def hitung_term(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 0 and kounter <= 1:
+        if kounter > 1 and kounter <= 2:
             counts = dict()
             # get from db >> stopword
             str_db = baca.stopword
@@ -101,9 +102,55 @@ def hitung_term(request):
             baca.count_term = ast.literal_eval(json.dumps(counts))
             baca.sum_all_word = len(counts)
             baca.save()
-
     return render(request, 'beranda/term.html', {'priview': ast.literal_eval(json.dumps(counts))})
 
+def tf_idf(request):
+    baca_db = CrawlNews.objects.all()
+    # count_doc = baca_db.count() #jumlah dokumen
+    count_doc = 3
+
+    # document frequency (df)
+    df = dict()
+    for i, iterasi_df in enumerate(baca_db, start=0):
+        if i<3:
+            ct = ast.literal_eval(iterasi_df.count_term)
+            for k,v in ct.items():
+                if k in df:
+                    df[k] += v
+                else:
+                    df[k] = v
+    # print(ast.literal_eval(json.dumps(df)))
+    # print('---------------^df------------------')
+
+    # term frequency (tf)
+    tf = dict()
+    for i, iter_df in enumerate(baca_db, start=0):
+        if i<3:
+            tf_i = df.fromkeys(df, 0)
+            ct = ast.literal_eval(iter_df.count_term)
+            for ke,va in ct.items():
+                if ke in df:
+                    tf_i[ke] = va
+            tf[iter_df.id] = tf_i
+    print(ast.literal_eval(json.dumps(tf)))
+    print('----------------^tf-----------------')
+
+    # inverse document frequency (idf)
+    idf = df.fromkeys(df, 0)
+    for key,val in idf.items():
+        idf[key] = math.log10(count_doc/df[key])
+    print(ast.literal_eval(json.dumps(idf)))
+    print('---------------^idf------------------')
+
+    # bobot tf-idf term (w)
+    w = tf
+    for ky, vl in tf.items():
+        for kkey, vval in vl.items():
+            w[ky][kkey] = vval*idf[kkey]
+    print(ast.literal_eval(json.dumps(w)))
+    print('---------------^w------------------')
+
+    return redirect(request.META.get('HTTP_REFERER'))
 
 def manual_class(request):
     if request.method == 'POST':
