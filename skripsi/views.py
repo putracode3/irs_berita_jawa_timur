@@ -122,37 +122,42 @@ def tf_idf(request):
     # print(ast.literal_eval(json.dumps(df)))
     # print('---------------^df------------------')
 
-    # term frequency (tf)
-    tf = dict()
+    # bobot term frequency (wtf)
+    w_tf = dict()
     for i, iter_df in enumerate(baca_db, start=0):
         if i<3:
             tf_i = df.fromkeys(df, 0)
             ct = ast.literal_eval(iter_df.count_term)
             for ke,va in ct.items():
                 if ke in df:
+                    if va > 0:
+                        va = 1+math.log10(va)
+                    else:
+                        va = 0
                     tf_i[ke] = va
-            tf[iter_df.id] = tf_i
-    print(ast.literal_eval(json.dumps(tf)))
-    print('----------------^tf-----------------')
+            w_tf[iter_df.id] = tf_i
+    # print(ast.literal_eval(json.dumps(w_tf)))
+    # print('----------------^tf-----------------')
 
     # inverse document frequency (idf)
     idf = df.fromkeys(df, 0)
     for key,val in idf.items():
         idf[key] = math.log10(count_doc/df[key])
-    print(ast.literal_eval(json.dumps(idf)))
-    print('---------------^idf------------------')
+    # print(ast.literal_eval(json.dumps(idf)))
+    # print('---------------^idf------------------')
 
     # bobot tf-idf term (w)
-    w = tf
-    for ky, vl in tf.items():
+    w = w_tf
+    for ky, vl in w_tf.items():
         for kkey, vval in vl.items():
             w[ky][kkey] = vval*idf[kkey]
-    print(ast.literal_eval(json.dumps(w)))
-    print('---------------^w------------------')
+    # print(ast.literal_eval(json.dumps(w)))
+    # print('---------------^w------------------')
 
     return redirect(request.META.get('HTTP_REFERER'))
 
 def manual_class(request):
+    return redirect(request.META.get('HTTP_REFERER'))
     if request.method == 'POST':
         form_data = request.POST
 
