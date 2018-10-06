@@ -157,8 +157,23 @@ def tf_idf(request):
             if key_b not in min_max:
                 min_max[key_b] = []
             min_max[key_b].append(val_b)
-    print(min_max)
-    # print('---------------^min_max------------------')
+
+    maksimal = dict()
+    minimal = dict()
+    for k_minmax, val_minmax in min_max.items():
+        maksimal[k_minmax] = max(val_minmax)
+        minimal[k_minmax] = min(val_minmax)
+
+    normalisasi = w
+    for k_n, v_n in w.items():
+        for k_ns, v_ns in v_n.items():
+            normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns]))*((1-0)+0)/(maksimal[k_ns]-minimal[k_ns])
+            
+    print(normalisasi)
+    # print('---------------^normalisasi min max------------------')
+
+
+    
 
     return redirect(request.META.get('HTTP_REFERER'))
 
