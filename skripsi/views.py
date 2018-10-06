@@ -119,7 +119,7 @@ def tf_idf(request):
                     df[k] += v
                 else:
                     df[k] = v
-    # print(ast.literal_eval(json.dumps(df)))
+    # print(df)
     # print('---------------^df------------------')
 
     # term frequency (tf)
@@ -132,14 +132,14 @@ def tf_idf(request):
                 if ke in df:
                     tf_i[ke] = va
             tf[iter_df.id] = tf_i
-    # print(ast.literal_eval(json.dumps(tf)))
+    # print(tf)
     # print('----------------^tf-----------------')
 
     # inverse document frequency (idf)
     idf = df.fromkeys(df, 0)
     for key,val in idf.items():
         idf[key] = math.log10(1+(count_doc/df[key]))
-    print(ast.literal_eval(json.dumps(idf)))
+    # print(idf)
     # print('---------------^idf------------------')
 
     # bobot tf-idf term (w)
@@ -147,8 +147,18 @@ def tf_idf(request):
     for ky, vl in tf.items():
         for kkey, vval in vl.items():
             w[ky][kkey] = vval*idf[kkey]
-    # print(ast.literal_eval(json.dumps(w)))
+    # print(w)
     # print('---------------^w------------------')
+
+    # find min-max and normalisasi
+    min_max = dict()
+    for key_a, val_a in w.items():
+        for key_b, val_b in val_a.items():
+            if key_b not in min_max:
+                min_max[key_b] = []
+            min_max[key_b].append(val_b)
+    print(min_max)
+    # print('---------------^min_max------------------')
 
     return redirect(request.META.get('HTTP_REFERER'))
 
