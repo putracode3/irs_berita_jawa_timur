@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect
 
-import json
-import ast
-import math
+import json, ast, math, random
 from skripsi.models import CrawlNews, Kelas
 from django.http import HttpResponseRedirect
 
@@ -107,12 +105,13 @@ def hitung_term(request):
 def tf_idf(request):
     baca_db = CrawlNews.objects.all()
     # count_doc = baca_db.count() #jumlah dokumen
-    count_doc = 3
+    count_doc = 4
+    kluster = 2
 
     # document frequency (df)
     df = dict()
     for i, iterasi_df in enumerate(baca_db, start=0):
-        if i<3:
+        if i < count_doc:
             ct = ast.literal_eval(iterasi_df.count_term)
             for k,v in ct.items():
                 if k in df:
@@ -125,7 +124,7 @@ def tf_idf(request):
     # term frequency (tf)
     tf = dict()
     for i, iter_df in enumerate(baca_db, start=0):
-        if i<3:
+        if i < count_doc:
             tf_i = df.fromkeys(df, 0)
             ct = ast.literal_eval(iter_df.count_term)
             for ke,va in ct.items():
@@ -167,13 +166,38 @@ def tf_idf(request):
     normalisasi = w
     for k_n, v_n in w.items():
         for k_ns, v_ns in v_n.items():
-            normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns]))*((1-0)+0)/(maksimal[k_ns]-minimal[k_ns])
-            
-    print(normalisasi)
+            normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns]))*((1-0)+0)/(maksimal[k_ns]-minimal[k_ns])            
+    # print(normalisasi)
     # print('---------------^normalisasi min max------------------')
 
-
+    # inisialisasi bobot klustering som range 0 s/d 1
+    w_som = dict()
+    # for w_i in range(kluster):
+    #     for w_is in range(len(idf)):
+    #         if w_i not in w_som:
+    #             w_som[w_i] = []
+    #         w_som[w_i].append(random.uniform(0,1))
+    w_som = {0: [0.7,0.8,0,0.5,0.2,1,0,0.4,0.6,0.3,0.4,0.6,0,0.2,0.3],1: [0.1,1,0.1,0.4,0.6,0.2,0.7,0.4,0.4,1,0,0,0.7,0,0.7]}
     
+    # print(normalisasi)
+    # print('-----------')
+    w_d = dict()
+    # for k_wd, v_wd in normalisasi.items():
+    #     w_d[k_wd] = list(v_wd.values())
+    w_d = {1: [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.5,0.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0],3:[0.0,1.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,1.0,1.0,0.0,0.0,0.0],4:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,1.0]}
+    # print('=======================')
+    d_som = dict()
+    for k_wd, v_wd in w_d.items(): #4
+        for cluster_i in range(kluster): #2
+            if k_wd not in d_som:
+                d_som[k_wd] = {'d':{cluster_i:float()},'w':w_som}
+            else:
+                d_som[k_wd]['d'].update({cluster_i:float()})
+            d_i = float()
+            for w_som_i in range(len(w_som[cluster_i])):
+                d_i += (w_som[cluster_i][w_som_i]-w_d[k_wd][w_som_i])**2
+            d_som[k_wd]['d'][cluster_i] = d_i
+    print(d_som)
 
     return redirect(request.META.get('HTTP_REFERER'))
 
