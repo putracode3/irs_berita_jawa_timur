@@ -107,6 +107,7 @@ def tf_idf(request):
     # count_doc = baca_db.count() #jumlah dokumen
     count_doc = 4
     kluster = 2
+    laju_pembelajaran = 0.5
 
     # document frequency (df)
     df = dict()
@@ -178,6 +179,8 @@ def tf_idf(request):
     #             w_som[w_i] = []
     #         w_som[w_i].append(random.uniform(0,1))
     w_som = {0: [0.7,0.8,0,0.5,0.2,1,0,0.4,0.6,0.3,0.4,0.6,0,0.2,0.3],1: [0.1,1,0.1,0.4,0.6,0.2,0.7,0.4,0.4,1,0,0,0.7,0,0.7]}
+    print(w_som)
+    print('===========')
     
     # print(normalisasi)
     # print('-----------')
@@ -188,6 +191,7 @@ def tf_idf(request):
     # print('=======================')
     d_som = dict()
     for k_wd, v_wd in w_d.items(): #4
+        w_som_index_update = int()
         for cluster_i in range(kluster): #2
             if k_wd not in d_som:
                 d_som[k_wd] = {'d':{cluster_i:float()},'w':w_som}
@@ -197,6 +201,14 @@ def tf_idf(request):
             for w_som_i in range(len(w_som[cluster_i])):
                 d_i += (w_som[cluster_i][w_som_i]-w_d[k_wd][w_som_i])**2
             d_som[k_wd]['d'][cluster_i] = d_i
+            if cluster_i > 0: #cek d_som terkecil
+                w_som_index_update = cluster_i if (d_i < d_som[k_wd]['d'][cluster_i-1]) else (cluster_i-1)
+        for w_s_i in range(len(w_som[cluster_i])): #update bobot w_som yang D terkecil
+            w_som[w_som_index_update][w_s_i] = w_som[w_som_index_update][w_s_i]+laju_pembelajaran*(w_d[k_wd][w_s_i]-w_som[w_som_index_update][w_s_i])
+        print('w som index update = ',w_som_index_update)
+        print('---------------')
+        print(w_som)
+        print('======================')
     print(d_som)
 
     return redirect(request.META.get('HTTP_REFERER'))
