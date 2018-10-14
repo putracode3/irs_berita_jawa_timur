@@ -203,10 +203,11 @@ def tf_idf(request):
     index_update_old = []
     status_konvergen = 0
     
-    coba = 0
+    jml_iterasi = 0
     while status_konvergen == 0:
-        coba += 1
-        del index_update_new[:] #to empty list
+        jml_iterasi += 1
+        del index_update_new[:] #to empty list        
+        
         for k_wd, v_wd in w_d.items(): #4
             w_som_index_update = int()
             for cluster_i in range(kluster): #2
@@ -231,15 +232,15 @@ def tf_idf(request):
         if len(index_update_old) > 0:
             perubahan = 0 #0=tidak ada perubahan, 1=ada perubahan
             for i_index in range(len(index_update_old)):
-                if index_update_new != index_update_old:
+                if index_update_new[i_index] != index_update_old[i_index]:
                     perubahan = 1
-            print('perubahan ', perubahan)
+                    print('ada yang tidak sama')
             if perubahan == 0:
                 status_konvergen = 1
         else:
-            index_update_old = index_update_new
-            print('old masih tahap mengisi')
-    print(coba)
+            index_update_old = index_update_new[:]
+            print('\nold masih tahap mengisi')
+    print('jumlah iterasi = ', jml_iterasi, '\n')
     return redirect(request.META.get('HTTP_REFERER'))
 
 def manual_class(request):
