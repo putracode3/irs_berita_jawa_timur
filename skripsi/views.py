@@ -173,44 +173,73 @@ def tf_idf(request):
 
     # inisialisasi bobot klustering som range 0 s/d 1
     w_som = dict()
-    # for w_i in range(kluster):
-    #     for w_is in range(len(idf)):
-    #         if w_i not in w_som:
-    #             w_som[w_i] = []
-    #         w_som[w_i].append(random.uniform(0,1))
-    w_som = {0: [0.7,0.8,0,0.5,0.2,1,0,0.4,0.6,0.3,0.4,0.6,0,0.2,0.3],1: [0.1,1,0.1,0.4,0.6,0.2,0.7,0.4,0.4,1,0,0,0.7,0,0.7]}
-    print(w_som)
-    print('===========')
+    ##### Start #####
+    for w_i in range(kluster):
+        for w_is in range(len(idf)):
+            if w_i not in w_som:
+                w_som[w_i] = []
+            w_som[w_i].append(random.uniform(0,1))
+
+    # w_som = {0: [0.7,0.8,0,0.5,0.2,1,0,0.4,0.6,0.3,0.4,0.6,0,0.2,0.3],1: [0.1,1,0.1,0.4,0.6,0.2,0.7,0.4,0.4,1,0,0,0.7,0,0.7]}
+    ##### End #####
+
+    # print(w_som)
+    # print('===========')
     
     # print(normalisasi)
     # print('-----------')
     w_d = dict()
-    # for k_wd, v_wd in normalisasi.items():
-    #     w_d[k_wd] = list(v_wd.values())
-    w_d = {1: [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.5,0.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0],3:[0.0,1.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,1.0,1.0,0.0,0.0,0.0],4:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,1.0]}
+
+    ##### Start #####
+    for k_wd, v_wd in normalisasi.items():
+        w_d[k_wd] = list(v_wd.values())
+
+    # w_d = {1: [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.5,0.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0],3:[0.0,1.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,1.0,1.0,0.0,0.0,0.0],4:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,1.0]}
+    ##### End #####
+
     # print('=======================')
     d_som = dict()
-    for k_wd, v_wd in w_d.items(): #4
-        w_som_index_update = int()
-        for cluster_i in range(kluster): #2
-            if k_wd not in d_som:
-                d_som[k_wd] = {'d':{cluster_i:float()},'w':w_som}
-            else:
-                d_som[k_wd]['d'].update({cluster_i:float()})
-            d_i = float()
-            for w_som_i in range(len(w_som[cluster_i])):
-                d_i += (w_som[cluster_i][w_som_i]-w_d[k_wd][w_som_i])**2
-            d_som[k_wd]['d'][cluster_i] = d_i
-            if cluster_i > 0: #cek d_som terkecil
-                w_som_index_update = cluster_i if (d_i < d_som[k_wd]['d'][cluster_i-1]) else (cluster_i-1)
-        for w_s_i in range(len(w_som[cluster_i])): #update bobot w_som yang D terkecil
-            w_som[w_som_index_update][w_s_i] = w_som[w_som_index_update][w_s_i]+laju_pembelajaran*(w_d[k_wd][w_s_i]-w_som[w_som_index_update][w_s_i])
-        print('w som index update = ',w_som_index_update)
-        print('---------------')
-        print(w_som)
-        print('======================')
-    print(d_som)
-
+    index_update_new = []
+    index_update_old = []
+    status_konvergen = 0
+    
+    coba = 0
+    while status_konvergen == 0:
+        coba += 1
+        del index_update_new[:] #to empty list
+        for k_wd, v_wd in w_d.items(): #4
+            w_som_index_update = int()
+            for cluster_i in range(kluster): #2
+                if k_wd not in d_som:
+                    d_som[k_wd] = {'d':{cluster_i:float()},'w':w_som}
+                else:
+                    d_som[k_wd]['d'].update({cluster_i:float()})
+                d_i = float()
+                for w_som_i in range(len(w_som[cluster_i])):
+                    d_i += (w_som[cluster_i][w_som_i]-w_d[k_wd][w_som_i])**2
+                d_som[k_wd]['d'][cluster_i] = d_i
+                if cluster_i > 0: #cek d_som terkecil
+                    w_som_index_update = cluster_i if (d_i < d_som[k_wd]['d'][cluster_i-1]) else (cluster_i-1)
+            for w_s_i in range(len(w_som[cluster_i])): #update bobot w_som yang D terkecil
+                w_som[w_som_index_update][w_s_i] = w_som[w_som_index_update][w_s_i]+laju_pembelajaran*(w_d[k_wd][w_s_i]-w_som[w_som_index_update][w_s_i])
+            index_update_new.append(w_som_index_update)
+            # print('w_som index yang diupdate = ',w_som_index_update)
+            # print('---------------')
+            # print(w_som)
+            # print('======================')
+        # print(d_som)
+        if len(index_update_old) > 0:
+            perubahan = 0 #0=tidak ada perubahan, 1=ada perubahan
+            for i_index in range(len(index_update_old)):
+                if index_update_new != index_update_old:
+                    perubahan = 1
+            print('perubahan ', perubahan)
+            if perubahan == 0:
+                status_konvergen = 1
+        else:
+            index_update_old = index_update_new
+            print('old masih tahap mengisi')
+    print(coba)
     return redirect(request.META.get('HTTP_REFERER'))
 
 def manual_class(request):
