@@ -237,9 +237,13 @@ def tf_idf(request):
                     print('ada yang tidak sama')
             if perubahan == 0:
                 status_konvergen = 1
+            print("Iterasi ke-",jml_iterasi)
+            print("----------------------------")
         else:
             index_update_old = index_update_new[:]
             print('\nold masih tahap mengisi')
+            print("Iterasi ke-",jml_iterasi)
+            print("----------------------------")
     print('jumlah iterasi = ', jml_iterasi, '\n')
     return redirect(request.META.get('HTTP_REFERER'))
 
