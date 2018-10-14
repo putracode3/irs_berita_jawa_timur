@@ -20,6 +20,7 @@ class CrawlNews(models.Model):
     stopword = models.TextField(blank=True)
     sum_all_word = models.TextField(blank=True)
     count_term = models.TextField(blank=True)
+    kluster = models.IntegerField(blank=True, default=0)
     kelas = models.ForeignKey(Kelas, on_delete=models.PROTECT)
     objects = models.Manager()
     Kelas.objects.get_or_create(nama="lain-lain")[0]

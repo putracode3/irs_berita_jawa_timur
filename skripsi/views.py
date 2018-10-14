@@ -59,7 +59,7 @@ def preproses(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 1 and kounter <= 3:
+        if kounter > 3 and kounter <= 4:
             # create stemmer
             factory = StemmerFactory()
             stemmer = factory.create_stemmer()
@@ -87,7 +87,7 @@ def hitung_term(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 1 and kounter <= 2:
+        if kounter > 3 and kounter <= 4:
             counts = dict()
             # get from db >> stopword
             str_db = baca.stopword
@@ -103,9 +103,12 @@ def hitung_term(request):
     return render(request, 'beranda/term.html', {'priview': ast.literal_eval(json.dumps(counts))})
 
 def tf_idf(request):
-    baca_db = CrawlNews.objects.all()
-    # count_doc = baca_db.count() #jumlah dokumen
-    count_doc = 4
+    # baca_db = CrawlNews.objects.all()
+    baca_db = CrawlNews.objects.exclude(sum_all_word__isnull=True).exclude(sum_all_word__exact='') #get db with sum_all_word not null or ''
+    count_doc = baca_db.count() #jumlah dokumen
+    print('\nJumlah dokumen = ',count_doc)
+    print('******************')
+    # count_doc = 4
     kluster = 2
     laju_pembelajaran = 0.5
 
@@ -167,7 +170,7 @@ def tf_idf(request):
     normalisasi = w
     for k_n, v_n in w.items():
         for k_ns, v_ns in v_n.items():
-            normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns]))*((1-0)+0)/(maksimal[k_ns]-minimal[k_ns])            
+            normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns]))*((1-0)+0)/(maksimal[k_ns]-minimal[k_ns])
     # print(normalisasi)
     # print('---------------^normalisasi min max------------------')
 
@@ -196,17 +199,18 @@ def tf_idf(request):
 
     # w_d = {1: [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.5,0.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0],3:[0.0,1.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,1.0,1.0,1.0,0.0,0.0,0.0],4:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,1.0]}
     ##### End #####
-
     # print('=======================')
     d_som = dict()
     index_update_new = []
     index_update_old = []
     status_konvergen = 0
+    kluster_update = dict()
     
     jml_iterasi = 0
     while status_konvergen == 0:
         jml_iterasi += 1
-        del index_update_new[:] #to empty list        
+        del index_update_new[:] #to empty list
+        kluster_update = kluster_update.fromkeys(kluster_update, 0)  # resete dict
         
         for k_wd, v_wd in w_d.items(): #4
             w_som_index_update = int()
@@ -224,11 +228,15 @@ def tf_idf(request):
             for w_s_i in range(len(w_som[cluster_i])): #update bobot w_som yang D terkecil
                 w_som[w_som_index_update][w_s_i] = w_som[w_som_index_update][w_s_i]+laju_pembelajaran*(w_d[k_wd][w_s_i]-w_som[w_som_index_update][w_s_i])
             index_update_new.append(w_som_index_update)
+            kluster_update[k_wd] = w_som_index_update
+            print(k_wd, '=(kluster)=', w_som_index_update)
             # print('w_som index yang diupdate = ',w_som_index_update)
             # print('---------------')
             # print(w_som)
             # print('======================')
         # print(d_som)
+        print("\nIterasi ke-",jml_iterasi)
+        # print(kluster_update)
         if len(index_update_old) > 0:
             perubahan = 0 #0=tidak ada perubahan, 1=ada perubahan
             for i_index in range(len(index_update_old)):
@@ -236,15 +244,22 @@ def tf_idf(request):
                     perubahan = 1
                     print('ada yang tidak sama')
             if perubahan == 0:
+                for key_kluster_update, val_kluster_update in kluster_update.items():
+                    t = CrawlNews.objects.get(id=key_kluster_update)
+                    t.kluster = val_kluster_update
+                    t.save()
                 status_konvergen = 1
-            print("Iterasi ke-",jml_iterasi)
+            print("-> Sudah konvergen? ", ("ya" if perubahan==0 else "tidak"))
+            print("-> Hasil cluster = ", index_update_new)
             print("----------------------------")
         else:
             index_update_old = index_update_new[:]
-            print('\nold masih tahap mengisi')
-            print("Iterasi ke-",jml_iterasi)
+            print('-> Inisialisasi')
+            print("-> Hasil cluster = ", index_update_new)
             print("----------------------------")
-    print('jumlah iterasi = ', jml_iterasi, '\n')
+    print("=========================")
+    print('Jumlah iterasi = ', jml_iterasi)
+    print("=========================\n",)
     return redirect(request.META.get('HTTP_REFERER'))
 
 def manual_class(request):
