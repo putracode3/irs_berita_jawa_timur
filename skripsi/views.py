@@ -59,7 +59,7 @@ def preproses(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 3 and kounter <= 4:
+        if kounter > 0 and kounter <= 10:
             # create stemmer
             factory = StemmerFactory()
             stemmer = factory.create_stemmer()
@@ -87,7 +87,7 @@ def hitung_term(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 3 and kounter <= 4:
+        if kounter > 2 and kounter <= 4:
             counts = dict()
             # get from db >> stopword
             str_db = baca.stopword
@@ -170,7 +170,10 @@ def tf_idf(request):
     normalisasi = w
     for k_n, v_n in w.items():
         for k_ns, v_ns in v_n.items():
-            normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns]))*((1-0)+0)/(maksimal[k_ns]-minimal[k_ns])
+            if maksimal[k_ns]!=minimal[k_ns]:
+                normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns])/(maksimal[k_ns]-minimal[k_ns]))*((1-0)+0)
+            else:
+                normalisasi[k_n][k_ns] = 0
     # print(normalisasi)
     # print('---------------^normalisasi min max------------------')
 
@@ -235,7 +238,7 @@ def tf_idf(request):
             # print(w_som)
             # print('======================')
         # print(d_som)
-        print("\nIterasi ke-",jml_iterasi)
+        print("\nIterasi ke-",jml_iterasi,' dengan laju pembelajaran ',laju_pembelajaran)
         # print(kluster_update)
         if len(index_update_old) > 0:
             perubahan = 0 #0=tidak ada perubahan, 1=ada perubahan
@@ -257,6 +260,7 @@ def tf_idf(request):
             print('-> Inisialisasi')
             print("-> Hasil cluster = ", index_update_new)
             print("----------------------------")
+        laju_pembelajaran = laju_pembelajaran * 0.6
     print("=========================")
     print('Jumlah iterasi = ', jml_iterasi)
     print("=========================\n",)
