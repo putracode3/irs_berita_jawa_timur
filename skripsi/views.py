@@ -50,7 +50,6 @@ def simpan(request):
 
     # return render(request, 'beranda/simpan.html', {"baca_json": baca_db})
 
-
 def preproses(request):
     baca_db = CrawlNews.objects.all()
     kounter = 0
@@ -99,6 +98,30 @@ def hitung_term(request):
             baca.save()
     return render(request, 'beranda/term.html', {'priview': ast.literal_eval(json.dumps(counts))})
 
+def preproses_kueri(param):
+    # create stemmer
+    factory = StemmerFactory()
+    stemmer = factory.create_stemmer()
+    # stemming process
+    sentence = param
+    output_stemming = stemmer.stem(sentence)
+    # stopword removal
+    fa = StopWordRemoverFactory()
+    stopword = fa.create_stop_word_remover()
+    output_stopword = stopword.remove(output_stemming)
+    output_stopword = output_stopword.replace(' - ', ' ')
+    # hitung term
+    counts = dict()
+    str_db = output_stopword
+    words = str_db.split()
+    for word in words:
+        if word in counts:
+            counts[word] += 1
+        else:
+            counts[word] = 1
+    output_count_term = ast.literal_eval(json.dumps(counts))
+    return output_count_term
+
 def cluster(request):
     # baca_db = CrawlNews.objects.all()
     if request.method != 'POST':
@@ -107,6 +130,10 @@ def cluster(request):
     form_data = request.POST
     if form_data['kueri'] == '':
         return render(request, 'beranda/index.html')
+    masukan = form_data['kueri']
+    queri = dict()
+    queri = preproses_kueri(masukan)
+    # ==========================end input user query=======================================
 
     baca_db = CrawlNews.objects.exclude(sum_all_word__isnull=True).exclude(sum_all_word__exact='') #get db with sum_all_word not null or ''
     count_doc = baca_db.count() #jumlah dokumen
@@ -126,19 +153,17 @@ def cluster(request):
                     df[k] = v
     # print(df)
     # tambahan query
-    masukan = form_data['kueri']
-    queri = dict()
-    queri = {
-        'prihatin': 2, 
-        'jember': 4, 
-        'lain': 1, 
-        'kembali': 1, 
-        'damping': 1, 
-        '12': 1, 
-        'soal': 1, 
-        'bisa': 1, 
-        'birojatim': 1
-    }
+    # queri = {
+    #     'prihatin': 2, 
+    #     'jember': 4, 
+    #     'lain': 1, 
+    #     'kembali': 1, 
+    #     'damping': 1, 
+    #     '12': 1, 
+    #     'soal': 1, 
+    #     'bisa': 1, 
+    #     'birojatim': 1
+    # }
     if queri:
         count_doc+=1
         for qu_key in queri:
@@ -244,7 +269,6 @@ def cluster(request):
     ordered = sorted(cos_sim.items(), key=lambda kv: kv[1], reverse=True)    
         ##### End #####
     ##### End #####
-    print("ordered = ",ordered)
     # print(w_d) #*********** .:-[ w_d AMAN ]-:. ***********
     print('=======================')
     d_som = dict()
@@ -321,7 +345,11 @@ def cluster(request):
     print(keluaran)
     print("=========================")
     print('Jumlah iterasi = ', jml_iterasi)
-    print("=========================\n",)
+    print("=========================")
+    print('Hasil preprocessing query user =\n', queri)
+    print("=========================")
+    print("ordered =\n", ordered)
+    print("=========================")
     # return redirect(request.META.get('HTTP_REFERER'))
     hasil = list(CrawlNews.objects.filter(pk__in=keluaran))
     hasil.sort(key=lambda t: keluaran.index(t.pk))
