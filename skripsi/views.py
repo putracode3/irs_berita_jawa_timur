@@ -133,12 +133,14 @@ def cluster(request):
     masukan = form_data['kueri']
     queri = dict()
     queri = preproses_kueri(masukan)
+    if not queri:
+        return render(request, 'beranda/index.html',{'not_found':'"Kata kunci kurang pas"','masukan':masukan})
     # ==========================end input user query=======================================
 
     baca_db = CrawlNews.objects.exclude(sum_all_word__isnull=True).exclude(sum_all_word__exact='') #get db with sum_all_word not null or ''
     count_doc = baca_db.count() #jumlah dokumen
     print('\nJumlah dokumen = ',count_doc)
-    kluster = 3
+    kluster = 2
     lp = 0.5
 
     # document frequency (df)
@@ -153,17 +155,6 @@ def cluster(request):
                     df[k] = v
     # print(df)
     # tambahan query
-    # queri = {
-    #     'prihatin': 2, 
-    #     'jember': 4, 
-    #     'lain': 1, 
-    #     'kembali': 1, 
-    #     'damping': 1, 
-    #     '12': 1, 
-    #     'soal': 1, 
-    #     'bisa': 1, 
-    #     'birojatim': 1
-    # }
     if queri:
         count_doc+=1
         for qu_key in queri:
@@ -338,11 +329,9 @@ def cluster(request):
     
     keluaran = list()
     for ind,ranking in ordered:
-        if ind != 0 and ku[0] == ku[ind]:
+        if ind != 0 and ku[0] == ku[ind] and ranking != 0.0:
             keluaran.append(ind)
-            # print("ku ",ku[0])
-            # print(ind)
-    print(keluaran)
+    print('id dokumen = ',keluaran)
     print("=========================")
     print('Jumlah iterasi = ', jml_iterasi)
     print("=========================")
