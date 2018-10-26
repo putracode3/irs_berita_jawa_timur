@@ -33,7 +33,7 @@ from skripsi import views as aplikasi_views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$', aplikasi_views.masukkan),
+    url(r'^$', aplikasi_views.cluster),
     url(r'^simpan/', aplikasi_views.simpan),
     url(r'^preproses/', aplikasi_views.preproses),
     url(r'^term/', aplikasi_views.hitung_term),

@@ -18,9 +18,10 @@
     <div class="container">
         <div class="py-3 text-center">
             <h2>IRS Berita Jawa Timur</h2>
-            <form class="card p-2">
+            <form class="card p-2" action="/cluster/" method="POST">
+                {% csrf_token %}
                 <div class="input-group">
-                    <input type="text" class="form-control" placeholder="IRS Berita Jawa Timur">
+                    <input type="text" class="form-control" name="kueri" placeholder="IRS Berita Jawa Timur" required value="{{masukan}}">
                     <div class="input-group-append">
                         <button type="submit" class="btn btn-primary">Cari</button>
                     </div>
@@ -31,7 +32,6 @@
             | <small><a href="/preproses/">Pre-processing</a></small> |
             | <small><a href="/term/">Count Term</a></small> |
             | <small><a href="/manual/">Manual Training</a></small> |
-            | <small><a href="/cluster/">Cluster</a></small> |
         </div>
         <div class="row">
             {% block content %} {% endblock %}

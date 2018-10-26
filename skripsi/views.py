@@ -11,10 +11,6 @@ from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 # Create your views here.
 
-def masukkan(request):
-    return render(request, 'beranda/index.html')
-
-
 def simpan(request):
     json_data = open('assets/detik.json')
     baca_file = json.load(json_data)
@@ -105,6 +101,13 @@ def hitung_term(request):
 
 def cluster(request):
     # baca_db = CrawlNews.objects.all()
+    if request.method != 'POST':
+        return render(request, 'beranda/index.html')
+    
+    form_data = request.POST
+    if form_data['kueri'] == '':
+        return render(request, 'beranda/index.html')
+
     baca_db = CrawlNews.objects.exclude(sum_all_word__isnull=True).exclude(sum_all_word__exact='') #get db with sum_all_word not null or ''
     count_doc = baca_db.count() #jumlah dokumen
     print('\nJumlah dokumen = ',count_doc)
@@ -123,11 +126,18 @@ def cluster(request):
                     df[k] = v
     # print(df)
     # tambahan query
+    masukan = form_data['kueri']
     queri = dict()
     queri = {
-        "kerek": 1,
-        "korban": 1,
-        "ambruk": 1,
+        'prihatin': 2, 
+        'jember': 4, 
+        'lain': 1, 
+        'kembali': 1, 
+        'damping': 1, 
+        '12': 1, 
+        'soal': 1, 
+        'bisa': 1, 
+        'birojatim': 1
     }
     if queri:
         count_doc+=1
@@ -208,7 +218,7 @@ def cluster(request):
     ##### End #####
 
     # print(w_som)
-    print('===========')
+    # print('===========')
     
     # print(normalisasi)
     # print('-----------')
@@ -234,7 +244,7 @@ def cluster(request):
     ordered = sorted(cos_sim.items(), key=lambda kv: kv[1], reverse=True)    
         ##### End #####
     ##### End #####
-    print(ordered)
+    print("ordered = ",ordered)
     # print(w_d) #*********** .:-[ w_d AMAN ]-:. ***********
     print('=======================')
     d_som = dict()
@@ -312,10 +322,12 @@ def cluster(request):
     print("=========================")
     print('Jumlah iterasi = ', jml_iterasi)
     print("=========================\n",)
-    return redirect(request.META.get('HTTP_REFERER'))
+    # return redirect(request.META.get('HTTP_REFERER'))
+    hasil = list(CrawlNews.objects.filter(pk__in=keluaran))
+    hasil.sort(key=lambda t: keluaran.index(t.pk))
+    return render(request, 'beranda/index.html', {'hasil': hasil,'masukan':masukan})
 
 def manual_class(request):
-    return redirect(request.META.get('HTTP_REFERER'))
     if request.method == 'POST':
         form_data = request.POST
 
