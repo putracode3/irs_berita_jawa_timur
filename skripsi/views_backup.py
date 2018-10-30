@@ -55,7 +55,7 @@ def preproses(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 90 and kounter <= 100:
+        if kounter > 0 and kounter <= 10:
             # create stemmer
             factory = StemmerFactory()
             stemmer = factory.create_stemmer()
@@ -83,7 +83,7 @@ def hitung_term(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 0 and kounter <= 100:
+        if kounter > 4 and kounter <= 10:
             counts = dict()
             # get from db >> stopword
             str_db = baca.stopword
@@ -140,7 +140,7 @@ def cluster(request):
     baca_db = CrawlNews.objects.exclude(sum_all_word__isnull=True).exclude(sum_all_word__exact='') #get db with sum_all_word not null or ''
     count_doc = baca_db.count() #jumlah dokumen
     print('\nJumlah dokumen = ',count_doc)
-    kluster = 5
+    kluster = 3
     lp = 0.5
 
     # document frequency (df)
@@ -175,6 +175,7 @@ def cluster(request):
             tf[iter_df.id] = tf_i
     # tambahan query
     if queri:
+        # count_doc += 1
         tf_q = df.fromkeys(df, 0)
         for q_key in queri:
             if q_key in df:
@@ -195,6 +196,7 @@ def cluster(request):
     for ky, vl in tf.items():
         for kkey, vval in vl.items():
             w[ky][kkey] = vval*idf[kkey]
+    # print(w)
     # print('---------------^w------------------')
 
     # find min-max and normalisasi
@@ -241,7 +243,6 @@ def cluster(request):
     ##### Start #####
     for k_wd, v_wd in normalisasi.items():
         w_d[k_wd] = list(v_wd.values())
-
         # untuk digunakan perhitungan cosinus similarity nanti
         ##### Start #####
         pangkat = float()
@@ -258,7 +259,6 @@ def cluster(request):
     cos_sim[0] = float()
     ordered = sorted(cos_sim.items(), key=lambda kv: kv[1], reverse=True)    
         ##### End #####
-
     ##### End #####
     # print(w_d) #*********** .:-[ w_d AMAN ]-:. ***********
     print('=======================')
@@ -279,8 +279,8 @@ def cluster(request):
 
         # -----------------------------------------------
         for k_wd, v_wd in w_d.items(): #4 bobot dokumen i => mulai dari 1
-            # print('---------***-------------') #output penting
-            # print('dokumen ke => ',k_wd) #output penting
+            print('---------***-------------')
+            print('dokumen ke => ',k_wd)
             # wsiu = int() 
             for ci in range(kluster): #3 perulangan sesuai berapa jumlah kluster => mulai dari 0
                 if k_wd not in d_som:
@@ -293,7 +293,7 @@ def cluster(request):
                     d_i += (w_som[ci][w_som_i]-w_d[k_wd][w_som_i])**2
                 d_som[k_wd]['d'][ci] = d_i
 
-                # print('>>', ci, ' ', d_som[k_wd]['d'][ci]) #output penting
+                print('>>', ci, ' ', d_som[k_wd]['d'][ci])
             #w_som_index_update untuk menampung index w_som mana yang akan diperbarui
             wsiu = min(d_som[k_wd]['d'], key=lambda k: d_som[k_wd]['d'][k])
             # print('cek data: ', d_som[k_wd]['d'], '\n>> index data minimal = ', min(d_som[k_wd]['d'], key=lambda k: d_som[k_wd]['d'][k]))
@@ -301,7 +301,7 @@ def cluster(request):
                 w_som[wsiu][wsi] = w_som[wsiu][wsi]+lp*(w_d[k_wd][wsi]-w_som[wsiu][wsi])
             index_update_new.append(wsiu)
             ku[k_wd] = wsiu
-            # print('index w yang diupdate => index = ', wsiu) #output penting
+            print('index w yang diupdate => index = ', wsiu)
         print('>> kluster =',ku)
         # -----------------------------------------------
 
@@ -313,11 +313,11 @@ def cluster(request):
                     perubahan = 1
                     print('ada yang tidak sama')
             if perubahan == 0:
-                # for key_kluster_update, val_kluster_update in ku.items():
-                #     if key_kluster_update!=0:
-                #         t = CrawlNews.objects.get(id=key_kluster_update)
-                #         t.kluster = val_kluster_update
-                #         t.save()
+                # for key_ku, val_ku in ku.items():
+                    # if key_ku != 0:
+                    #     t = CrawlNews.objects.get(id=key_ku)
+                    #     t.kluster = val_ku
+                    #     t.save()
                 status_konvergen = 1
             print("-> Sudah konvergen? ", ("ya" if perubahan==0 else "tidak"))
             print("----------------------------\n \n")

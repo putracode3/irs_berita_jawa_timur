@@ -55,7 +55,7 @@ def preproses(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 90 and kounter <= 100:
+        if kounter > 0 and kounter <= 10:
             # create stemmer
             factory = StemmerFactory()
             stemmer = factory.create_stemmer()
@@ -83,7 +83,7 @@ def hitung_term(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 0 and kounter <= 100:
+        if kounter > 4 and kounter <= 10:
             counts = dict()
             # get from db >> stopword
             str_db = baca.stopword
@@ -140,7 +140,7 @@ def cluster(request):
     baca_db = CrawlNews.objects.exclude(sum_all_word__isnull=True).exclude(sum_all_word__exact='') #get db with sum_all_word not null or ''
     count_doc = baca_db.count() #jumlah dokumen
     print('\nJumlah dokumen = ',count_doc)
-    kluster = 5
+    kluster = 3
     lp = 0.5
 
     # document frequency (df)
@@ -155,11 +155,11 @@ def cluster(request):
                     df[k] = v
     # print(df)
     # tambahan query
-    if queri:
-        count_doc+=1
-        for qu_key in queri:
-            if qu_key in df:
-                df[qu_key] += queri[qu_key]
+    # if queri:
+    #     count_doc+=1
+    #     for qu_key in queri:
+    #         if qu_key in df:
+    #             df[qu_key] += queri[qu_key]
     print('\nJumlah dokumen + Q = ',count_doc)
     # print('---------------^df------------------')
 
@@ -174,12 +174,12 @@ def cluster(request):
                     tf_i[ke] = va
             tf[iter_df.id] = tf_i
     # tambahan query
-    if queri:
-        tf_q = df.fromkeys(df, 0)
-        for q_key in queri:
-            if q_key in df:
-                tf_q[q_key] += queri[q_key]
-        tf[0] = tf_q
+    # if queri:
+    #     tf_q = df.fromkeys(df, 0)
+    #     for q_key in queri:
+    #         if q_key in df:
+    #             tf_q[q_key] += queri[q_key]
+    #     tf[0] = tf_q
     # print(tf)
     # print('----------------^tf-----------------')
 
@@ -195,6 +195,7 @@ def cluster(request):
     for ky, vl in tf.items():
         for kkey, vval in vl.items():
             w[ky][kkey] = vval*idf[kkey]
+    # print(w)
     # print('---------------^w------------------')
 
     # find min-max and normalisasi
@@ -244,23 +245,23 @@ def cluster(request):
 
         # untuk digunakan perhitungan cosinus similarity nanti
         ##### Start #####
-        pangkat = float()
-        for k_nm in v_wd:
-            if k_wd not in cos_sim:
-                cos_sim[k_wd] = {'atas': float(), 'akar': pangkat, 'cos_sim':float()}
-            if k_wd != 0:
-                cos_sim[k_wd]['atas'] += (v_wd[k_nm]*normalisasi[0][k_nm])
-            pangkat += (v_wd[k_nm]**2)
-        cos_sim[k_wd]['akar'] = math.sqrt(pangkat)
-    for cs in cos_sim:
-        if cs != 0:
-            cos_sim[cs] = cos_sim[cs]['atas']/(cos_sim[0]['akar']*cos_sim[cs]['akar'])
-    cos_sim[0] = float()
-    ordered = sorted(cos_sim.items(), key=lambda kv: kv[1], reverse=True)    
+    #     pangkat = float()
+    #     for k_nm in v_wd:
+    #         if k_wd not in cos_sim:
+    #             cos_sim[k_wd] = {'atas': float(), 'akar': pangkat, 'cos_sim':float()}
+    #         if k_wd != 0:
+    #             cos_sim[k_wd]['atas'] += (v_wd[k_nm]*normalisasi[0][k_nm])
+    #         pangkat += (v_wd[k_nm]**2)
+    #     cos_sim[k_wd]['akar'] = math.sqrt(pangkat)
+    # for cs in cos_sim:
+    #     if cs != 0:
+    #         cos_sim[cs] = cos_sim[cs]['atas']/(cos_sim[0]['akar']*cos_sim[cs]['akar'])
+    # cos_sim[0] = float()
+    # ordered = sorted(cos_sim.items(), key=lambda kv: kv[1], reverse=True)    
         ##### End #####
 
     ##### End #####
-    # print(w_d) #*********** .:-[ w_d AMAN ]-:. ***********
+    print(w_d) #*********** .:-[ w_d AMAN ]-:. ***********
     print('=======================')
     d_som = dict()
     # untuk pencocokan saja, apakah cluster i sekarang sama dengan sebelumnya
@@ -279,8 +280,8 @@ def cluster(request):
 
         # -----------------------------------------------
         for k_wd, v_wd in w_d.items(): #4 bobot dokumen i => mulai dari 1
-            # print('---------***-------------') #output penting
-            # print('dokumen ke => ',k_wd) #output penting
+            print('---------***-------------')
+            print('dokumen ke => ',k_wd)
             # wsiu = int() 
             for ci in range(kluster): #3 perulangan sesuai berapa jumlah kluster => mulai dari 0
                 if k_wd not in d_som:
@@ -293,7 +294,7 @@ def cluster(request):
                     d_i += (w_som[ci][w_som_i]-w_d[k_wd][w_som_i])**2
                 d_som[k_wd]['d'][ci] = d_i
 
-                # print('>>', ci, ' ', d_som[k_wd]['d'][ci]) #output penting
+                print('>>', ci, ' ', d_som[k_wd]['d'][ci])
             #w_som_index_update untuk menampung index w_som mana yang akan diperbarui
             wsiu = min(d_som[k_wd]['d'], key=lambda k: d_som[k_wd]['d'][k])
             # print('cek data: ', d_som[k_wd]['d'], '\n>> index data minimal = ', min(d_som[k_wd]['d'], key=lambda k: d_som[k_wd]['d'][k]))
@@ -301,7 +302,7 @@ def cluster(request):
                 w_som[wsiu][wsi] = w_som[wsiu][wsi]+lp*(w_d[k_wd][wsi]-w_som[wsiu][wsi])
             index_update_new.append(wsiu)
             ku[k_wd] = wsiu
-            # print('index w yang diupdate => index = ', wsiu) #output penting
+            print('index w yang diupdate => index = ', wsiu)
         print('>> kluster =',ku)
         # -----------------------------------------------
 
@@ -313,11 +314,6 @@ def cluster(request):
                     perubahan = 1
                     print('ada yang tidak sama')
             if perubahan == 0:
-                # for key_kluster_update, val_kluster_update in ku.items():
-                #     if key_kluster_update!=0:
-                #         t = CrawlNews.objects.get(id=key_kluster_update)
-                #         t.kluster = val_kluster_update
-                #         t.save()
                 status_konvergen = 1
             print("-> Sudah konvergen? ", ("ya" if perubahan==0 else "tidak"))
             print("----------------------------\n \n")
@@ -328,16 +324,16 @@ def cluster(request):
         lp = lp * 0.6
     
     keluaran = list()
-    for ind,ranking in ordered:
-        if ind != 0 and ku[0] == ku[ind] and ranking != 0.0:
-            keluaran.append(ind)
+    # for ind,ranking in ordered:
+    #     if ind != 0 and ku[0] == ku[ind] and ranking != 0.0:
+    #         keluaran.append(ind)
     print('id dokumen = ',keluaran)
     print("=========================")
     print('Jumlah iterasi = ', jml_iterasi)
     print("=========================")
     print('Hasil preprocessing query user =\n', queri)
     print("=========================")
-    print("ordered =\n", ordered)
+    # print("ordered =\n", ordered)
     print("=========================")
     # return redirect(request.META.get('HTTP_REFERER'))
     hasil = list(CrawlNews.objects.filter(pk__in=keluaran))
