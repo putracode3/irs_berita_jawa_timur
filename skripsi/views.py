@@ -11,69 +11,58 @@ from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 
 # for crawling
-import requests
+import requests, re
 from bs4 import BeautifulSoup
 
 # Create your views here.
 
 # crawling
-def crawl_kompas(url):
-    
-    result = []
+def crawl_detik(url):
     req = requests.get(url)
     soup = BeautifulSoup(req.text, "lxml")
     
-    #find paging page 
-    paging = soup.find_all("div",{'class':'paging clearfix'})
-    paging_link = paging[0].find_all('a',{'class':'paging__link'})
-    last_page = int([item.get('href').split('/')[-1] for item in paging_link][-1])
-
-    #looping through paging
-    # for i in range(1,last_page):
-    for i in range(1,3):
-        print(url+str(i))
-
-        #find article link
-        req = requests.get(url+str(i))
-        soup = BeautifulSoup(req.text, "lxml")
-        news_links = soup.find_all("div",{'class':'article__list clearfix'})
-
-        #looping through article link
-        for idx,news in enumerate(news_links):
-            news_dict = {}
-
-            #find news title
-            title_news= news.find('a',{'class':'article__link'}).text 
-
-            #find urll news
-            url_news = news.find('a',{'class':'article__link'}).get('href')
-            
-            #find news content in url
-            req_news =  requests.get(url_news)
-            soup_news = BeautifulSoup(req_news.text, "lxml")
-
-            #find news content 
-            news_content = soup_news.find("div",{'class':'read__content'})
-
-            #find paragraph in news content 
-            p = news_content.find_all('p')
-            content = ' '.join(item .text for item in p)
-            news_content = content.encode('utf8','replace')
-
-            #wrap in dictionary 
-            news_dict['id']=idx
-            news_dict['url'] = url_news
-            news_dict['title'] = title_news
-            news_dict['content'] = news_content
-            result.append(news_dict)
-    return result
+    news_links = soup.find("ul", {'class': 'list_feed'}).find_all("div",{'class':'desc_nhl'})
+    for berita  in news_links:
+        #judul berta
+        judul_berita = berita.find('h2').text
+        #tanggal berita
+        tanggal_sumber = berita.find('span', {'class': 'labdate f11'}).text
+        tanggal_berita = tanggal_sumber.split(" | ")[1]
+        #main headline berita
+        for hilangi in berita.find_all('span'):
+            hilangi.decompose() #menghilangkan tag
+        berita.find('h2').decompose() #menghilangkan tag 
+        main_headline_berita = berita.get_text(strip=True) #strip untuk menghilangkan whitespace
+        #url berita
+        url_berita = berita.find('a').get('href')
+        #konten berita
+        req_konten = requests.get(url_berita)
+        soup_konten = BeautifulSoup(req_konten.text, "lxml")
+        for delete_linksisip in soup_konten.find_all("table"):
+            delete_linksisip.decompose()
+        for delete_googletag in soup_konten.find_all("center"):
+            delete_googletag.decompose()
+        for delete_tagstrong in soup_konten.find_all("strong"):
+            delete_tagstrong.decompose()
+        for delete_tagp in soup_konten.find_all("p"):
+            delete_tagp.decompose()
+        konten_berita = " ".join(soup_konten.find('div', {'class': 'detail_text'}).get_text(" ",strip=True).split())
+        
+        simpan_detik = CrawlNews(
+            headline = judul_berita,
+            date = tanggal_berita,
+            main_headline = main_headline_berita,
+            content = konten_berita,
+            url = url_berita
+        )
+        simpan_detik.save()
+        print(url_berita)
 
 def simpan(request):
-    url = 'http://indeks.kompas.com/news/2017-08-04/'
-    crawl = crawl_kompas(url)
-    # print(crawl)
-    # with open("kompas.json", "w") as f:
-    #     json.dump(crawl, f)
+    url_detik = 'https://news.detik.com/jawatimur'
+    crawl_detik(url_detik)
+
+
     return render(request, 'beranda/index.html')
     # return redirect(request.META.get('HTTP_REFERER'))
 # -------------------------------------------
