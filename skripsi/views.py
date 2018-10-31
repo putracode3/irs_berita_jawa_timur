@@ -58,10 +58,66 @@ def crawl_detik(url):
         simpan_detik.save()
         print(url_berita)
 
-def simpan(request):
-    url_detik = 'https://news.detik.com/jawatimur'
-    crawl_detik(url_detik)
 
+def crawl_sindo(url):
+    req = requests.get(url)
+    soup = BeautifulSoup(req.text, "lxml")
+    news_links = soup.find_all("div", {'class': 'indeks-rows'})
+    for berita in news_links:
+        judul_berita = berita.find('div', {'class': 'indeks-title'}).find('a').text
+        tanggal_berita = berita.find('div', {'class': 'mini-info'}).find('p').text
+        main_headline_berita = berita.find('div', {'class': 'indeks-caption'}).find('span').text
+        url_berita = berita.find('div', {'class': 'indeks-title'}).find('a').get('href')
+        
+        req_sub = requests.get(url_berita)
+        soup_sub = BeautifulSoup(req_sub.text, "lxml")
+        konten_berita = " ".join(soup_sub.find('section', {'class': 'article col-md-11'}).find('p').get_text(" ", strip=True).split())
+
+        simpan_sindo = CrawlNews(
+            headline=judul_berita,
+            date=tanggal_berita,
+            main_headline=main_headline_berita,
+            content=konten_berita,
+            url=url_berita
+        )
+        simpan_sindo.save()
+        print(url_berita)
+
+    #pagination
+    last_pagination = int(soup.find('div', {'class': 'pagination'}).find_all('li')[-1].find('a')['data-ci-pagination-page'])
+    for lp in range(1,(last_pagination+1)):
+        if lp < (last_pagination):
+            url_pagination = soup.find('div', {'class': 'pagination'}).find(attrs={'data-ci-pagination-page':str(lp+1)}).get('href')
+            print('>> ', url_pagination, ' <<')
+            req_pagination = requests.get(url_pagination)
+            soup_pagination = BeautifulSoup(req_pagination.text, "lxml")
+            news_links_pagination = soup_pagination.find_all("div", {'class': 'indeks-rows'})
+            for berita_pagination in news_links_pagination:
+                judul_berita_pagination = berita_pagination.find('div', {'class': 'indeks-title'}).find('a').text
+                tanggal_berita_pagination = berita_pagination.find('div', {'class': 'mini-info'}).find('p').text
+                main_headline_berita_pagination = berita_pagination.find('div', {'class': 'indeks-caption'}).find('span').text
+                url_berita_pagination = berita_pagination.find('div', {'class': 'indeks-title'}).find('a').get('href')
+
+                req_sub = requests.get(url_berita_pagination)
+                soup_sub = BeautifulSoup(req_sub.text, "lxml")
+                konten_berita_pagination = " ".join(soup_sub.find('section', {'class': 'article col-md-11'}).find('p').get_text(" ", strip=True).split())
+                
+                simpan_sindo = CrawlNews(
+                    headline=judul_berita_pagination,
+                    date=tanggal_berita_pagination,
+                    main_headline=main_headline_berita_pagination,
+                    content=konten_berita_pagination,
+                    url=url_berita_pagination
+                )
+                simpan_sindo.save()
+                print(url_berita_pagination)
+
+def simpan(request):
+    # url_detik = 'https://news.detik.com/jawatimur'
+    # crawl_detik(url_detik)
+
+    url_sindo = 'https://jatim.sindonews.com/index'
+    crawl_sindo(url_sindo)
 
     return render(request, 'beranda/index.html')
     # return redirect(request.META.get('HTTP_REFERER'))
