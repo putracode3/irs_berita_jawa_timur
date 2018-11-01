@@ -112,12 +112,108 @@ def crawl_sindo(url):
                 simpan_sindo.save()
                 print(url_berita_pagination)
 
+def crawl_okezone(url):
+    req = requests.get(url)
+    soup = BeautifulSoup(req.text, "lxml")
+    judul_1 = soup.find("div", {'class': 'mh-title-wrap'}).find("a").text
+    url_1 = soup.find("div", {'class': 'mh-title-wrap'}).find("a").get('href')
+    req_1 = requests.get(url_1)
+    soup_1 = BeautifulSoup(req_1.text, "lxml")
+    tanggal_1 = soup_1.find("div", {'class': 'namerep'}).find("b").text
+    sub_1 = soup_1.find("div", {'id': 'contentx'})
+    for del_link_eks in sub_1.find_all(attrs={'style': 'padding-left: 30px;'}):
+            del_link_eks.decompose()
+    konten_1 = ""
+    main_headline_1 = ""
+    for ix, s_1 in enumerate(sub_1.find_all("p")):
+        if ix == 0:
+            main_headline_1 = s_1.get_text(" ",strip=True)
+        konten_1 += s_1.get_text(" ",strip=True)
+        konten_1 += " "
+    simpan_okezone = CrawlNews(
+        headline=judul_1,
+        date=tanggal_1,
+        main_headline=main_headline_1,
+        content=konten_1,
+        url=url_1
+    )
+    simpan_okezone.save()
+    print(url_1)
+
+    # list 1
+    for list_1 in soup.find("div", {'class': 'hl-list-berita'}).find_all("a"):
+        judul_2 = list_1.text
+        url_2 = list_1.get('href')
+        req_2 = requests.get(url_2)
+        soup_2 = BeautifulSoup(req_2.text, "lxml")
+        tanggal_2 = soup_2.find("div", {'class': 'namerep'}).find("b").text
+        sub_2 = soup_2.find("div", {'id': 'contentx'})
+        for del_link_eks in sub_2.find_all(attrs={'style': 'padding-left: 30px;'}):
+            del_link_eks.decompose()
+        konten_2 = ""
+        main_headline_2 = ""
+        for ix_2, s_2 in enumerate(sub_2.find_all("p")):
+            if ix_2 == 0:
+                main_headline_2 = s_2.get_text(" ", strip=True)
+            konten_2 += s_2.get_text(" ", strip=True)
+            konten_2 += " "
+        simpan_okezone = CrawlNews(
+            headline=judul_2,
+            date=tanggal_2,
+            main_headline=main_headline_2,
+            content=konten_2,
+            url=url_2
+        )
+        simpan_okezone.save()
+        print(url_2)
+    
+    # list 2
+    list_3 = soup.find("div", {'class': 'list-contentx'})
+    for l3 in list_3.find_all("h2"):
+        judul_3 = l3.get_text(" ",strip=True)
+        url_3 = l3.find("a").get("href")
+        req_3 = requests.get(url_3)
+        soup_3 = BeautifulSoup(req_3.text, "lxml")
+        tanggal_3 = soup_3.find("div", {'class': 'namerep'}).find("b").text
+        sub_3 = soup_3.find("div", {'id': 'contentx'})
+        for del_link_eks in sub_3.find_all(attrs={'style': 'padding-left: 30px;'}):
+            del_link_eks.decompose()
+        konten_3 = ""
+        main_headline_3 = ""
+        for ix_3, s_3 in enumerate(sub_3.find_all("p")):
+            if ix_3 == 0:
+                main_headline_3 = s_3.get_text(" ", strip=True)
+            konten_3 += s_3.get_text(" ", strip=True)
+            konten_3 += " "
+        simpan_okezone = CrawlNews(
+            headline=judul_3,
+            date=tanggal_3,
+            main_headline=main_headline_3,
+            content=konten_3,
+            url=url_3
+        )
+        simpan_okezone.save()
+        print(url_3)
+
+def crawl_jawapos(url):
+    req = requests.get(url)
+    soup = BeautifulSoup(req.text, "lxml")
+    news_links = soup.find("ul", {'class': 'list_feed'}).find_all(
+        "div", {'class': 'desc_nhl'})
+        
+
 def simpan(request):
     # url_detik = 'https://news.detik.com/jawatimur'
     # crawl_detik(url_detik)
 
-    url_sindo = 'https://jatim.sindonews.com/index'
-    crawl_sindo(url_sindo)
+    # url_sindo = 'https://jatim.sindonews.com/index'
+    # crawl_sindo(url_sindo)
+
+    url_okezone = 'https://news.okezone.com/jatim'
+    crawl_okezone(url_okezone)
+
+    # url_jawapos = 'https://www.jawapos.com/location/jawa-timur'
+    # crawl_jawapos(url_jawapos)
 
     return render(request, 'beranda/index.html')
     # return redirect(request.META.get('HTTP_REFERER'))
