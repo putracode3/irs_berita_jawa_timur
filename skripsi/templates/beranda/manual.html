@@ -6,7 +6,7 @@
                 <a href="{{cr.url}}">{{ cr.id }}) {{cr.headline}}</a>
             </h5>
             <p class="card-text">{{cr.main_headline}}</p>
-            <p>DETIKNEWS | {{cr.date}}</p>
+            <p>{{cr.date}}</p>
             <p>
                 <form class="form-inline" action="/manual/" method="POST">
                     {% csrf_token %}

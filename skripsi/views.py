@@ -198,9 +198,28 @@ def crawl_okezone(url):
 def crawl_jawapos(url):
     req = requests.get(url)
     soup = BeautifulSoup(req.text, "lxml")
-    news_links = soup.find("ul", {'class': 'list_feed'}).find_all(
-        "div", {'class': 'desc_nhl'})
-        
+    news = soup.find("div", {'class': 'row news-thumbnail flex-wrap'}).find_all("div", {'class': 'wrapper-img-caption'})
+    for new in news:
+        new.find('a').decompose()
+        judul_berita = new.find('a').get_text(strip=True)
+        url_berita = new.find('a').get('href')
+        main_headline_berita = new.find('p').get_text(strip=True)
+        req_sub = requests.get(url_berita)
+        soup_sub = BeautifulSoup(req_sub.text, "lxml")
+        tanggal_berita = soup_sub.find('div', {'class': 'meta-article c-gray txt-12'}).find('span').text
+        konten_sub = soup_sub.find('article', {'class': 'col-11 article'}).find_all('p')
+        konten_berita = ""
+        for ks in konten_sub:
+            konten_berita += ks.get_text(" ",strip=True)
+        simpan_jawapos = CrawlNews(
+            headline=judul_berita,
+            date=tanggal_berita,
+            main_headline=main_headline_berita,
+            content=konten_berita,
+            url=url_berita
+        )
+        simpan_jawapos.save()
+        print(url_berita)        
 
 def simpan(request):
     # url_detik = 'https://news.detik.com/jawatimur'
@@ -209,11 +228,11 @@ def simpan(request):
     # url_sindo = 'https://jatim.sindonews.com/index'
     # crawl_sindo(url_sindo)
 
-    url_okezone = 'https://news.okezone.com/jatim'
-    crawl_okezone(url_okezone)
+    # url_okezone = 'https://news.okezone.com/jatim'
+    # crawl_okezone(url_okezone)
 
-    # url_jawapos = 'https://www.jawapos.com/location/jawa-timur'
-    # crawl_jawapos(url_jawapos)
+    url_jawapos = 'https://www.jawapos.com/location/jawa-timur'
+    crawl_jawapos(url_jawapos)
 
     return render(request, 'beranda/index.html')
     # return redirect(request.META.get('HTTP_REFERER'))
