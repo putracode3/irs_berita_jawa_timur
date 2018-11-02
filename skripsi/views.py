@@ -4,6 +4,7 @@ import json, ast, math, random
 from skripsi.models import CrawlNews, Kelas
 from django.http import HttpResponseRedirect
 from operator import itemgetter
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -47,16 +48,19 @@ def crawl_detik(url):
         for delete_tagp in soup_konten.find_all("p"):
             delete_tagp.decompose()
         konten_berita = " ".join(soup_konten.find('div', {'class': 'detail_text'}).get_text(" ",strip=True).split())
-        
-        simpan_detik = CrawlNews(
-            headline = judul_berita,
-            date = tanggal_berita,
-            main_headline = main_headline_berita,
-            content = konten_berita,
-            url = url_berita
-        )
-        simpan_detik.save()
-        print(url_berita)
+        try:
+            check_url = CrawlNews.objects.get(url=url_berita)
+            break
+        except ObjectDoesNotExist:
+            simpan_detik = CrawlNews(
+                headline = judul_berita,
+                date = tanggal_berita,
+                main_headline = main_headline_berita,
+                content = konten_berita,
+                url = url_berita
+            )
+            simpan_detik.save()
+            print("Berita news.detik.com/jatim = ",url_berita)
 
 
 def crawl_sindo(url):
@@ -73,44 +77,55 @@ def crawl_sindo(url):
         soup_sub = BeautifulSoup(req_sub.text, "lxml")
         konten_berita = " ".join(soup_sub.find('section', {'class': 'article col-md-11'}).find('p').get_text(" ", strip=True).split())
 
-        simpan_sindo = CrawlNews(
-            headline=judul_berita,
-            date=tanggal_berita,
-            main_headline=main_headline_berita,
-            content=konten_berita,
-            url=url_berita
-        )
-        simpan_sindo.save()
-        print(url_berita)
+        try:
+            check_url = CrawlNews.objects.get(url=url_berita)
+            break
+        except ObjectDoesNotExist:
+            simpan_sindo = CrawlNews(
+                headline=judul_berita,
+                date=tanggal_berita,
+                main_headline=main_headline_berita,
+                content=konten_berita,
+                url=url_berita
+            )
+            simpan_sindo.save()
+            print("Berita jatim.sindonews.com/index = ", url_berita)
 
     #pagination
-    last_pagination = int(soup.find('div', {'class': 'pagination'}).find_all('li')[-1].find('a')['data-ci-pagination-page'])
-    for lp in range(1,(last_pagination+1)):
-        if lp < (last_pagination):
-            url_pagination = soup.find('div', {'class': 'pagination'}).find(attrs={'data-ci-pagination-page':str(lp+1)}).get('href')
-            print('>> ', url_pagination, ' <<')
-            req_pagination = requests.get(url_pagination)
-            soup_pagination = BeautifulSoup(req_pagination.text, "lxml")
-            news_links_pagination = soup_pagination.find_all("div", {'class': 'indeks-rows'})
-            for berita_pagination in news_links_pagination:
-                judul_berita_pagination = berita_pagination.find('div', {'class': 'indeks-title'}).find('a').text
-                tanggal_berita_pagination = berita_pagination.find('div', {'class': 'mini-info'}).find('p').text
-                main_headline_berita_pagination = berita_pagination.find('div', {'class': 'indeks-caption'}).find('span').text
-                url_berita_pagination = berita_pagination.find('div', {'class': 'indeks-title'}).find('a').get('href')
+    try:
+        last_pagination = int(soup.find('div', {'class': 'pagination'}).find_all('li')[-1].find('a')['data-ci-pagination-page'])
+        for lp in range(1,(last_pagination+1)):
+            if lp < (last_pagination):
+                url_pagination = soup.find('div', {'class': 'pagination'}).find(attrs={'data-ci-pagination-page':str(lp+1)}).get('href')
+                # print('>> ', url_pagination, ' <<')
+                req_pagination = requests.get(url_pagination)
+                soup_pagination = BeautifulSoup(req_pagination.text, "lxml")
+                news_links_pagination = soup_pagination.find_all("div", {'class': 'indeks-rows'})
+                for berita_pagination in news_links_pagination:
+                    judul_berita_pagination = berita_pagination.find('div', {'class': 'indeks-title'}).find('a').text
+                    tanggal_berita_pagination = berita_pagination.find('div', {'class': 'mini-info'}).find('p').text
+                    main_headline_berita_pagination = berita_pagination.find('div', {'class': 'indeks-caption'}).find('span').text
+                    url_berita_pagination = berita_pagination.find('div', {'class': 'indeks-title'}).find('a').get('href')
 
-                req_sub = requests.get(url_berita_pagination)
-                soup_sub = BeautifulSoup(req_sub.text, "lxml")
-                konten_berita_pagination = " ".join(soup_sub.find('section', {'class': 'article col-md-11'}).find('p').get_text(" ", strip=True).split())
-                
-                simpan_sindo = CrawlNews(
-                    headline=judul_berita_pagination,
-                    date=tanggal_berita_pagination,
-                    main_headline=main_headline_berita_pagination,
-                    content=konten_berita_pagination,
-                    url=url_berita_pagination
-                )
-                simpan_sindo.save()
-                print(url_berita_pagination)
+                    req_sub = requests.get(url_berita_pagination)
+                    soup_sub = BeautifulSoup(req_sub.text, "lxml")
+                    konten_berita_pagination = " ".join(soup_sub.find('section', {'class': 'article col-md-11'}).find('p').get_text(" ", strip=True).split())
+                    
+                    try:
+                        check_url = CrawlNews.objects.get(url=url_berita_pagination)
+                        break
+                    except ObjectDoesNotExist:
+                        simpan_sindo = CrawlNews(
+                            headline=judul_berita_pagination,
+                            date=tanggal_berita_pagination,
+                            main_headline=main_headline_berita_pagination,
+                            content=konten_berita_pagination,
+                            url=url_berita_pagination
+                        )
+                        simpan_sindo.save()
+                        print("Berita jatim.sindonews.com/index = ", url_berita_pagination)
+    except AttributeError:
+        print("- Tidak ada pagination -")
 
 def crawl_okezone(url):
     req = requests.get(url)
@@ -130,15 +145,19 @@ def crawl_okezone(url):
             main_headline_1 = s_1.get_text(" ",strip=True)
         konten_1 += s_1.get_text(" ",strip=True)
         konten_1 += " "
-    simpan_okezone = CrawlNews(
-        headline=judul_1,
-        date=tanggal_1,
-        main_headline=main_headline_1,
-        content=konten_1,
-        url=url_1
-    )
-    simpan_okezone.save()
-    print(url_1)
+
+    try:
+        check_url = CrawlNews.objects.get(url=url_1)
+    except ObjectDoesNotExist:
+        simpan_okezone = CrawlNews(
+            headline=judul_1,
+            date=tanggal_1,
+            main_headline=main_headline_1,
+            content=konten_1,
+            url=url_1
+        )
+        simpan_okezone.save()
+        print("Berita news.okezone.com/jatim = ",url_1)
 
     # list 1
     for list_1 in soup.find("div", {'class': 'hl-list-berita'}).find_all("a"):
@@ -157,15 +176,19 @@ def crawl_okezone(url):
                 main_headline_2 = s_2.get_text(" ", strip=True)
             konten_2 += s_2.get_text(" ", strip=True)
             konten_2 += " "
-        simpan_okezone = CrawlNews(
-            headline=judul_2,
-            date=tanggal_2,
-            main_headline=main_headline_2,
-            content=konten_2,
-            url=url_2
-        )
-        simpan_okezone.save()
-        print(url_2)
+        try:
+            check_url = CrawlNews.objects.get(url=url_2)
+            break
+        except ObjectDoesNotExist:
+            simpan_okezone = CrawlNews(
+                headline=judul_2,
+                date=tanggal_2,
+                main_headline=main_headline_2,
+                content=konten_2,
+                url=url_2
+            )
+            simpan_okezone.save()
+            print("Berita news.okezone.com/jatim = ", url_2)
     
     # list 2
     list_3 = soup.find("div", {'class': 'list-contentx'})
@@ -185,15 +208,19 @@ def crawl_okezone(url):
                 main_headline_3 = s_3.get_text(" ", strip=True)
             konten_3 += s_3.get_text(" ", strip=True)
             konten_3 += " "
-        simpan_okezone = CrawlNews(
-            headline=judul_3,
-            date=tanggal_3,
-            main_headline=main_headline_3,
-            content=konten_3,
-            url=url_3
-        )
-        simpan_okezone.save()
-        print(url_3)
+        try:
+            check_url = CrawlNews.objects.get(url=url_3)
+            break
+        except ObjectDoesNotExist:
+            simpan_okezone = CrawlNews(
+                headline=judul_3,
+                date=tanggal_3,
+                main_headline=main_headline_3,
+                content=konten_3,
+                url=url_3
+            )
+            simpan_okezone.save()
+            print("Berita news.okezone.com/jatim = ", url_3)
 
 def crawl_jawapos(url):
     req = requests.get(url)
@@ -211,25 +238,30 @@ def crawl_jawapos(url):
         konten_berita = ""
         for ks in konten_sub:
             konten_berita += ks.get_text(" ",strip=True)
-        simpan_jawapos = CrawlNews(
-            headline=judul_berita,
-            date=tanggal_berita,
-            main_headline=main_headline_berita,
-            content=konten_berita,
-            url=url_berita
-        )
-        simpan_jawapos.save()
-        print(url_berita)        
+        
+        try:
+            check_url = CrawlNews.objects.get(url=url_berita)
+            break
+        except ObjectDoesNotExist:
+            simpan_jawapos = CrawlNews(
+                headline=judul_berita,
+                date=tanggal_berita,
+                main_headline=main_headline_berita,
+                content=konten_berita,
+                url=url_berita
+            )
+            simpan_jawapos.save()
+            print("Berita jawapos.com/location/jawa-timur = ",url_berita)
 
 def simpan(request):
-    # url_detik = 'https://news.detik.com/jawatimur'
-    # crawl_detik(url_detik)
+    url_detik = 'https://news.detik.com/jawatimur'
+    crawl_detik(url_detik)
 
-    # url_sindo = 'https://jatim.sindonews.com/index'
-    # crawl_sindo(url_sindo)
+    url_sindo = 'https://jatim.sindonews.com/index'
+    crawl_sindo(url_sindo)
 
-    # url_okezone = 'https://news.okezone.com/jatim'
-    # crawl_okezone(url_okezone)
+    url_okezone = 'https://news.okezone.com/jatim'
+    crawl_okezone(url_okezone)
 
     url_jawapos = 'https://www.jawapos.com/location/jawa-timur'
     crawl_jawapos(url_jawapos)
@@ -282,7 +314,7 @@ def preproses(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 90 and kounter <= 100:
+        if kounter > 12 and kounter <= 24:
             # create stemmer
             factory = StemmerFactory()
             stemmer = factory.create_stemmer()
@@ -310,7 +342,7 @@ def hitung_term(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 0 and kounter <= 100:
+        if kounter > 0 and kounter <= 24:
             counts = dict()
             # get from db >> stopword
             str_db = baca.stopword
