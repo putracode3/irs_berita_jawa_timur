@@ -15,7 +15,6 @@ from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFacto
 import requests, re
 from bs4 import BeautifulSoup
 
-# Create your views here.
 
 # crawling
 def crawl_detik(url):
@@ -314,7 +313,7 @@ def preproses(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 12 and kounter <= 24:
+        if kounter > 25 and kounter <= 26:
             # create stemmer
             factory = StemmerFactory()
             stemmer = factory.create_stemmer()
@@ -342,7 +341,7 @@ def hitung_term(request):
     kounter = 0
     for baca in baca_db:
         kounter += 1
-        if kounter > 0 and kounter <= 24:
+        if kounter > 25 and kounter <= 26:
             counts = dict()
             # get from db >> stopword
             str_db = baca.stopword
@@ -399,7 +398,7 @@ def cluster(request):
     baca_db = CrawlNews.objects.exclude(sum_all_word__isnull=True).exclude(sum_all_word__exact='') #get db with sum_all_word not null or ''
     count_doc = baca_db.count() #jumlah dokumen
     print('\nJumlah dokumen = ',count_doc)
-    kluster = 5
+    kluster = 3
     lp = 0.5
 
     # document frequency (df)
@@ -413,6 +412,7 @@ def cluster(request):
                 else:
                     df[k] = v
     # print(df)
+    # print('----------------------------===============----------------------------')
     # tambahan query
     if queri:
         count_doc+=1
@@ -471,12 +471,14 @@ def cluster(request):
         minimal[k_minmax] = min(val_minmax)
 
     normalisasi = w
+    new_min = 1
+    new_max = 9
     for k_n, v_n in w.items():
         for k_ns, v_ns in v_n.items():
             if maksimal[k_ns]!=minimal[k_ns]:
-                normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns])/(maksimal[k_ns]-minimal[k_ns]))*((1-0)+0)
+                normalisasi[k_n][k_ns] = ((w[k_n][k_ns]-minimal[k_ns])/(maksimal[k_ns]-minimal[k_ns]))*((new_max-new_min)+new_min)
             else:
-                normalisasi[k_n][k_ns] = 1.0
+                normalisasi[k_n][k_ns] = new_max
     # print(normalisasi)
     # print('---------------^normalisasi min max------------------')
 
@@ -531,7 +533,8 @@ def cluster(request):
     
     # print(w_d)
     jml_iterasi = 0
-    while status_konvergen == 0:
+    # while status_konvergen == 0:
+    for ok in range(10):
         jml_iterasi += 1
         del index_update_new[:] #to empty list
         ku = ku.fromkeys(ku, 0)  # resete dict

@@ -21,7 +21,7 @@ class CrawlNews(models.Model):
     sum_all_word = models.TextField(blank=True)
     count_term = models.TextField(blank=True)
     kluster = models.TextField(blank=True)
-    kelas = models.ForeignKey(Kelas, on_delete=models.PROTECT)
+    kelas = models.ForeignKey(Kelas, on_delete=models.PROTECT, default='')
     objects = models.Manager()
     Kelas.objects.get_or_create(nama="lain-lain")[0]
 
