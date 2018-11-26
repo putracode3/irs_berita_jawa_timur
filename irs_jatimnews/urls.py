@@ -39,4 +39,6 @@ urlpatterns = [
     url(r'^term/', aplikasi_views.hitung_term),
     url(r'^manual/', aplikasi_views.manual_class),
     url(r'^cluster/', aplikasi_views.cluster),
+    url(r'^cluster_noquery/', aplikasi_views.cluster_noquery),
+    url(r'^check_term_sama/', aplikasi_views.check_term_sama),
 ]

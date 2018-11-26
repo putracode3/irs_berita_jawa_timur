@@ -14,29 +14,59 @@
 
 </head>
 
-<body class="bg-light">
-    <div class="container">
-        <div class="py-3 text-center">
-            <h2>IRS Berita Jawa Timur</h2>
-            <form class="card p-2" action="/cluster/" method="POST">
-                {% csrf_token %}
-                <div class="input-group">
-                    <input type="text" class="form-control" name="kueri" placeholder="IRS Berita Jawa Timur" required value="{{masukan}}">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-primary">Cari</button>
+<body>
+        <div class="py-3 text-center" style="background-color: #fafafa !important; border-bottom: 1px solid #d2d2d2;">
+                <h2>IRS Berita Jawa Timur</h2>
+                <div class="d-flex justify-content-center">
+                    <div class="col-md-6" style="padding-top: 10px; padding-bottom: 10px;">
+                        <form action="/cluster/" method="POST">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="kueri" placeholder="IRS Berita Jawa Timur" required value="{{masukan}}">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary">Cari</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </form>
-            | <small><a href="/">Home</a></small> |
-            | <small><a href="/simpan/">Save Data to MySql</a></small> |
-            | <small><a href="/preproses/">Pre-processing</a></small> |
-            | <small><a href="/term/">Count Term</a></small> |
-            | <small><a href="/manual/">Manual Training</a></small> |
-        </div>
+                <style>
+                    .link_menu:hover{
+                        background-color: #4CAF50; /* Green */
+                        border: none;
+                        color: white;
+                        padding: 2px 9px;
+                        text-align: center;
+                        text-decoration: none;
+                        display: inline-block;
+                        /* font-size: 16px; */
+                    }
+                </style>
+                <div class="col-md-12" style="padding-top: 3px;">
+                    | <small><a class="link_menu" href="/">Home</a></small> 
+                    | <small><a class="link_menu" href="/simpan/">Save Data to MySql</a></small> 
+                    | <small><a class="link_menu" href="/preproses/">Pre-processing</a></small> 
+                    | <small><a class="link_menu" href="/term/">Count Term</a></small> 
+                    <!-- | <small><a class="link_menu" href="/manual/">Manual Training</a></small> -->
+                    |
+                </div>
+            </div>
+    <div class="container" style="padding-bottom: 3em;">        
         <div class="row">
             {% block content %} {% endblock %}
         </div>
-        <footer class="my-5 pt-3 text-muted text-center text-small">
+        <style>
+            footer{
+                position: fixed;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                background-color: #fafafa !important;
+                border-top: 1px solid #d2d2d2;
+                text-align: center;
+            }
+        </style>
+        <footer class="pt-2 pb-1 text-muted text-center text-small">
             <p class="mb-1">&copy; 2018 IRS Berita Jawa Timur (Denny Setia Wisnugraha | 14650024)</p>
         </footer>
     </div>
