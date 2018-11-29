@@ -583,17 +583,17 @@ def cluster(request):
             for i_index in range(len(index_update_old)):
                 if index_update_new[i_index] != index_update_old[i_index]:
                     perubahan = 1
-                    print('ada yang tidak sama')
+                    # print('ada yang tidak sama')
             if perubahan == 0:
                 status_konvergen = 1
             print("-> Sudah konvergen? ", ("ya" if perubahan==0 else "tidak"))
-            print("old:")
-            print(index_update_old)
-            print("new")
-            print(index_update_new)
+            # print("old:")
+            # print(index_update_old)
+            # print("new")
+            # print(index_update_new)
             index_update_old = index_update_new[:]
-            print("old_diperbarui:")
-            print(index_update_old)
+            # print("old_diperbarui:")
+            # print(index_update_old)
             print("----------------------------\n \n")
         else:
             index_update_old = index_update_new[:]
@@ -611,15 +611,15 @@ def cluster(request):
     print("=========================")
     print('Hasil preprocessing query user =\n', queri)
     print("=========================")
-    print("ordered =\n", ordered)
-    print("=========================")
+    # print("ordered =\n", ordered)
+    # print("=========================")
     list_selected = list()
     for k_select,v_select in ordered:
         if v_select != 0.0:
             list_selected.append(k_select)
-    print(sorted(list_selected))
-    print('----*********----')
-    print(len(list_selected))
+    # print(sorted(list_selected))
+    # print('----*********----')
+    # print(len(list_selected))
     # return redirect(request.META.get('HTTP_REFERER'))
     hasil = list(CrawlNews.objects.filter(pk__in=keluaran))
     hasil.sort(key=lambda t: keluaran.index(t.pk))
